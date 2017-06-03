@@ -1,0 +1,75 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:id="@+id/listitem_item_root"
+    android:background="@color/white_smoke"
+    >
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        >
+        <!--thumbnail-->
+        <ImageView
+            android:id="@+id/listitem_item_thumbnail_imageview"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="10dp"
+            android:text="T"
+            android:textSize="20dp"
+            android:layout_gravity="center_vertical"
+            android:clickable="false"
+            />
+
+        <!--title-->
+        <TextView
+            android:id="@+id/listitem_item_title_textview"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            />
+
+        <RelativeLayout
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            >
+            <!--updated time-->
+            <TextView
+                android:id="@+id/listitem_item_dateupdated_textview"
+                android:layout_width="match_parent"
+                android:layout_height="15dp"
+                android:text="123"
+                android:gravity="right"
+                android:layout_marginRight="5dp"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="10dp"
+                android:textSize="10dp"
+                />
+            <!--category label-->
+            <TextView
+                android:id="@+id/listitem_item_categorylevel_textview"
+                android:layout_width="match_parent"
+                android:layout_height="15dp"
+                android:gravity="right"
+                android:text="123"
+                android:textSize="12dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginBottom="10dp"
+                android:layout_alignParentBottom="true"
+                />
+            <!--save star-->
+            <ImageView
+                android:id="@+id/listitem_item_star_imageview"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_centerInParent="true"
+                android:layout_below="@+id/listitem_item_dateupdated_textview"
+                android:layout_above="@+id/listitem_item_categorylevel_textview"
+                />
+        </RelativeLayout>
+    </LinearLayout>
+
+</RelativeLayout>

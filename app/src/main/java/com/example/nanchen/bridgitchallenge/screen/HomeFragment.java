@@ -23,20 +23,25 @@ import com.example.nanchen.bridgitchallenge.network.NetworkConnection;
 import com.example.nanchen.bridgitchallenge.network.URLManager;
 import com.example.nanchen.bridgitchallenge.network.WebResponse;
 import com.example.nanchen.bridgitchallenge.object.ItemListObject;
+import com.example.nanchen.bridgitchallenge.presenter.HomePresenter;
+import com.example.nanchen.bridgitchallenge.presenter.IHomeView;
 import com.example.nanchen.bridgitchallenge.xmlparser.XmlParser;
+
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by nanchen on 2017-06-02.
  * top over refresh all
  * bottom over load more
- * click start toggle save current to offline table
+ * click star toggle save current to offline table
  * click item jump to detail
  */
 
-public class HomeFragment extends BaseFragment implements IListLoadListener<ItemListObject>{
+public class HomeFragment extends BaseFragment implements IHomeView{
     MainActivity nn_activity;
     RelativeLayout rootview;
 
@@ -45,10 +50,15 @@ public class HomeFragment extends BaseFragment implements IListLoadListener<Item
     HomeRecycleAdapter adapter;
     LinearLayoutManager mLayoutManager;
 
+    private HomePresenter presenter;
+
     public static final int LIMIT=10;
     public static int offset;
     private int preLast;
     public volatile boolean flag_loading=false;
+
+    // set the value to indicate the last retrieve the whole list from web, to prevent repeat action
+    public static DateTime previousRefresh;
 
     @Override
     public void onAttach (Context context)
@@ -63,7 +73,7 @@ public class HomeFragment extends BaseFragment implements IListLoadListener<Item
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        offset=0;
+        presenter=new HomePresenter(this);
     }
 
     @Override
@@ -91,7 +101,7 @@ public class HomeFragment extends BaseFragment implements IListLoadListener<Item
                 if(!flag_loading){
                     flag_loading=true;
                     offset=0;
-                    nn_activity.execute(new RetrieveListThread(HomeFragment.this));
+                    presenter.retrieveWholeList(LIMIT);
                 }
             }
         });
@@ -127,7 +137,7 @@ public class HomeFragment extends BaseFragment implements IListLoadListener<Item
                                 preLast = lastItem;
                                 offset += 10;
                                 adapter.addRefreshRow();
-                                nn_activity.execute(new RetrieveExtraListThread(HomeFragment.this));
+                                presenter.retrieveExtraList(LIMIT,offset);
                             }
                 }
 
@@ -141,114 +151,50 @@ public class HomeFragment extends BaseFragment implements IListLoadListener<Item
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        showLoading();
-        nn_activity.execute(new RetrieveListThread(HomeFragment.this));
+        offset=0;
+        flag_loading=true;
+        if(previousRefresh!=null&&TimeUnit.MILLISECONDS.toSeconds(DateTime.now().getMillis()-previousRefresh.getMillis())<60) {
+            presenter.retrieveExtraList(LIMIT,offset);
+        }else{
+            showLoading();
+            presenter.retrieveWholeList(LIMIT);
+        }
     }
 
     //refresh all from database
+    // if is extra retrieve locally, if full retreive frm remote and save to local
     @Override
-    public void onGetQueryListResult(boolean isavailable,  ArrayList list,int type) {
-        if(type==0) {
-            if (isavailable) {
-                final ArrayList<ItemListObject> templist = list;
-                nn_activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (templist != null) {
+    public void onGetQueryListResult(final boolean isavailable,  final ArrayList list,IHomeView.QueryType type) {
+        if(type == QueryType.FULL) {
+            nn_activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    HomeFragment.this.dismissLoading();
+                    swipeRefreshLayout.setRefreshing(false);
+                    if (isavailable) {
+                        if (list != null) {
                             adapter.clearList();
-                            adapter.addandupdatelist(templist);
-                            flag_loading=false;
+                            adapter.addandupdatelist(list);
                         }
                     }
-                });
-            }
-        }else if(type==1){
-            if (isavailable) {
-                final ArrayList<ItemListObject> templist = list;
-                nn_activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (templist != null) {
+                    previousRefresh=DateTime.now();
+                }
+            });
+        }else if(type == QueryType.Extra){
+            nn_activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (isavailable) {
+                        if (list != null) {
                             adapter.deleteRefreshRow();
-                            adapter.addandupdatelist(templist);
-                            flag_loading=false;
+                            adapter.addandupdatelist(list);
                         }
                     }
-                });
-            }
-        }
-    }
-
-    // if extends 10
-    class RetrieveExtraListThread implements Runnable{
-        private boolean isavailable=false;
-        private IListLoadListener nn_listener;
-
-        public RetrieveExtraListThread(IListLoadListener listener) {
-            nn_listener=listener;
+                }});
         }
 
-        @Override
-        public void run(){
-
-            ArrayList<ItemListObject> list=null;
-            try{
-                Thread.sleep(1000);
-                list = new ItemDao().getJoinedList(LIMIT, offset);
-                isavailable=true;
-            }catch (Exception e){
-                e.printStackTrace();
-                isavailable=false;
-                flag_loading=false;
-            }finally{
-                if(nn_listener!=null){
-                    nn_listener.onGetQueryListResult(isavailable,list,1);
-                }
-            }
-        }
-
+        // not matter available or not set the flag to allow next event
+        flag_loading=false;
 
     }
-
-    class RetrieveListThread implements Runnable {
-        private boolean isavailable=false;
-        private IListLoadListener nn_listener;
-
-        public RetrieveListThread(IListLoadListener listener) {
-            nn_listener=listener;
-        }
-
-        @Override
-        public void run(){
-            ArrayList<ItemListObject> list=null;
-            try{
-                Thread.sleep(1000);
-                //after retrieve update database
-                WebResponse response=new NetworkConnection().sendRequest(NetworkConnection.HTTPVerb.GET, URLManager.getRssUrl(),null,"");
-                if(response.code==200&&!TextUtils.isEmpty(response.result)){
-                    List<Item> itemList= new XmlParser().parse(response.result);
-                    new ItemDao().addAll(itemList);
-                    list=new ItemDao().getJoinedList(LIMIT,offset);
-                }
-                offset=0;
-                isavailable=true;
-            }catch (Exception e){
-                e.printStackTrace();
-                isavailable=false;
-                flag_loading=false;
-            }finally{
-                nn_activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        HomeFragment.this.dismissLoading();
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-                });
-                if(nn_listener!=null){
-                    nn_listener.onGetQueryListResult(isavailable,list,0);
-                }
-            }
-        }
-    }
-
 }

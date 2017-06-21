@@ -20,14 +20,14 @@ import com.example.nanchen.bridgitchallenge.util.ConfigurationManager;
 public class BaseFragmentActivity extends FragmentActivity{
 
 
-    public static BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<Runnable>(ConfigurationManager.QUEUE_SIZE);
-    public static RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-    public static ExecutorService executorService =  new ThreadPoolExecutor(ConfigurationManager.INITIAL_POOL_SIZE, ConfigurationManager.MAXIMUM_POOL_SIZE,
-            ConfigurationManager.THREAD_ALIVE_TIME, TimeUnit.SECONDS, blockingQueue, rejectedExecutionHandler);
-
-    public void execute(Runnable runnable){
-        executorService.execute(runnable);
-    }
+//    public static BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<Runnable>(ConfigurationManager.QUEUE_SIZE);
+//    public static RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
+//    public static ExecutorService executorService =  new ThreadPoolExecutor(ConfigurationManager.INITIAL_POOL_SIZE, ConfigurationManager.MAXIMUM_POOL_SIZE,
+//            ConfigurationManager.THREAD_ALIVE_TIME, TimeUnit.SECONDS, blockingQueue, rejectedExecutionHandler);
+//
+//    public void execute(Runnable runnable){
+//        executorService.execute(runnable);
+//    }
 
     @Override
     public void onAttachFragment(Fragment fragment) {

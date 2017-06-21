@@ -29,7 +29,7 @@ public class ItemDao extends BaseDao<Item> {
                     "SELECT id,title,dateupdated,categorylabel,imgurl,contentstr,savedtime FROM OfflineItem "+
                     "UNION " +
                     "SELECT id,title,dateupdated,categorylabel,imgurl,contentstr, NULL as savedtime FROM Item WHERE id NOT IN (SELECT id from OfflineItem)" +
-                    ") ORDER BY savedtime DESC LIMIT ? OFFSET ? ";
+                    ") ORDER BY savedtime DESC,dateupdated DESC LIMIT ? OFFSET ? ";
             GenericRawResults<ItemListObject> results=dao.queryRaw(query, new RawRowMapper<ItemListObject>() {
                 @Override
                 public ItemListObject mapRow(String[] columnNames, String[] resultColumns) throws SQLException {

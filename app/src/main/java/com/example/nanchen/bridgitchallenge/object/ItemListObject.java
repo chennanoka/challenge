@@ -1,5 +1,8 @@
 package com.example.nanchen.bridgitchallenge.object;
 
+import android.text.TextUtils;
+
+import com.example.nanchen.bridgitchallenge.itemfactory.ItemFactory;
 import com.example.nanchen.bridgitchallenge.model.Item;
 import com.example.nanchen.bridgitchallenge.model.OfflineItem;
 import com.j256.ormlite.field.DatabaseField;
@@ -24,7 +27,7 @@ public class ItemListObject {
 
     protected boolean isfiller;
 
-    public ItemListObject(){
+    private ItemListObject(){
 
     }
 
@@ -49,15 +52,15 @@ public class ItemListObject {
     }
 
     public Item getItem(){
-        return new Item(id,title,dateupdated,categorylabel,imgurl,contentstr);
+        return ItemFactory.listObjectToItem(this);
     }
 
     public OfflineItem getOfflineItem(){
         DateTime dateTime= savedtime;
         if(dateTime==null){
-            dateTime= DateTime.now();
+            dateTime = DateTime.now();
         }
-        return new OfflineItem(id,title,dateupdated,categorylabel,imgurl,contentstr,dateTime);
+        return ItemFactory.listObjectToOfflineItem(this,dateTime);
     }
 
     public String getId() {

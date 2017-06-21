@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.example.nanchen.bridgitchallenge.App;
 import com.example.nanchen.bridgitchallenge.MainActivity;
 import com.example.nanchen.bridgitchallenge.adapter.HomeRecycleAdapter;
 import com.example.nanchen.bridgitchallenge.database.OfflineItemDao;
@@ -86,7 +87,7 @@ public class OfflineListFragment extends BaseFragment implements IListLoadListen
                 if(!flag_loading){
                     flag_loading=true;
                     offset=0;
-                    nn_activity.execute(new RetrieveListThread(OfflineListFragment.this));
+                    App.getInstance().execute(new RetrieveListThread(OfflineListFragment.this));
                 }
             }
         });
@@ -122,7 +123,7 @@ public class OfflineListFragment extends BaseFragment implements IListLoadListen
                         preLast = lastItem;
                         offset += 10;
                         adapter.addRefreshRow();
-                        nn_activity.execute(new RetrieveExtraListThread(OfflineListFragment.this));
+                        App.getInstance().execute(new RetrieveExtraListThread(OfflineListFragment.this));
                     }
                 }
 
@@ -137,7 +138,7 @@ public class OfflineListFragment extends BaseFragment implements IListLoadListen
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         showLoading();
-        nn_activity.execute(new RetrieveListThread(OfflineListFragment.this));
+        App.getInstance().execute(new RetrieveListThread(OfflineListFragment.this));
     }
 
     //refresh all from database
